@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
@@ -15,8 +15,8 @@ export class PaymentsController {
 
   // Endpoint para recibir notificaciones de Mercado Pago (webhook)
   @Post('webhook')
-  async webhook(@Body() payload: any) {
-    return // await this.paymentsService.handleWebhook(payload);
+  async webhook(@Body() payload: any, @Query() query: any) {
+    return this.paymentsService.handleWebhook(payload, query)
   }
 
   @Get('success')
