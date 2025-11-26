@@ -14,6 +14,17 @@ export class ProductsService {
     })
   }
 
+  async searchByName(name: string) {
+    return this.prismaService.product.findMany({
+      where: {
+        name: {
+          contains: name,
+          mode: 'insensitive'
+        }
+      }
+    });
+  }
+
   findAll() {
     return this.prismaService.product.findMany();
   }
