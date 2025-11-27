@@ -22,28 +22,37 @@ export class PaymentsService {
 
   }
 
-  async createOrder({ productId, quantity }: CreatePaymentDto) {
-    const product = await this.prisma.product.findUnique({
+  async createOrder({ cartItems }: CreatePaymentDto) {
+    const productIds = cartItems.map(item => item.productId);
+
+    const products = await this.prisma.product.findMany({
       where: {
-        id: productId
+        id: {
+          in: productIds
+        }
       }
     });
 
-    if (!product) throw new NotFoundException('Product not found');
+    if (products.length !== cartItems.length) {
+      throw new NotFoundException('Uno o más productos no existen');
+    }
 
-    const total = product.price * quantity;
+    const items = cartItems.map(item => {
+      const product = products.find(p => p.id === item.productId)!;
+      return {
+        id: product.id.toString(),
+        title: product.name ?? `Producto ${product.id}`,
+        quantity: item.quantity,
+        unit_price: product.price,
+        currency_id: 'COP',
+      };
+    });
+
+    const total = items.reduce((acc, item) => acc + item.unit_price * item.quantity, 0);
 
     //Integracion de Mercado pago para generar ordenes de pago
     const preference = {
-      items: [
-        {
-          id: product.id.toString(),
-          title: product.name ?? `Producto ${product.id}`,
-          quantity,
-          unit_price: product.price,
-          currency_id: 'COP',
-        },
-      ],
+      items,
       back_urls: {
         success: process.env.MP_SUCCESS_URL!,
         failure: process.env.MP_FAILURE_URL!,

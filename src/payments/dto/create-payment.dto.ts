@@ -1,12 +1,17 @@
-import {IsInt, IsPositive} from 'class-validator';
+import {IsInt, IsPositive, ValidateNested} from 'class-validator';
 import { Type } from 'class-transformer';
 
 
-export class CreatePaymentDto {
-    
-    @Type(() => Number) @IsInt() @IsPositive()
-    productId: number;
+class CartItemDto {
+  @Type(() => Number) @IsInt() @IsPositive()
+  productId: number;
 
-    @Type(() => Number) @IsInt() @IsPositive()
-    quantity: number;
+  @Type(() => Number) @IsInt() @IsPositive()
+  quantity: number;
+}
+
+export class CreatePaymentDto {
+  @ValidateNested({ each: true })
+  @Type(() => CartItemDto)
+  cartItems: CartItemDto[];
 }
